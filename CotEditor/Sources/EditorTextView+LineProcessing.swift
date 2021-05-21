@@ -122,29 +122,6 @@ extension EditorTextView {
     }
     
     
-    /// show pattern sort sheet
-    @IBAction func patternSort(_ sender: Any?) {
-        
-        guard self.isEditable else { return NSSound.beep() }
-        
-        let viewController = PatternSortViewController.instantiate(storyboard: "PatternSortView")
-        
-        // sample the first line
-        let location = self.selectedRange.isEmpty
-            ? self.string.startIndex
-            : String.Index(utf16Offset: self.selectedRange.location, in: self.string)
-        let lineRange = self.string.lineContentsRange(at: location)
-        viewController.sampleLine = String(self.string[lineRange])
-        viewController.sampleFontName = self.font?.fontName
-        
-        viewController.completionHandler = { [weak self] (pattern, options) in
-            self?.sortLines(pattern: pattern, options: options)
-        }
-        
-        self.viewControllerForSheet?.presentAsSheet(viewController)
-    }
-    
-    
     
     // MARK: Private Methods
     
@@ -152,28 +129,6 @@ extension EditorTextView {
     private func edit(with info: String.EditingInfo, actionName: String) {
         
         self.replace(with: info.strings, ranges: info.ranges, selectedRanges: info.selectedRanges, actionName: actionName)
-    }
-    
-    
-    /// Sort lines in the text content.
-    ///
-    /// - Parameters:
-    ///   - pattern: The sort pattern.
-    ///   - options: The sort options.
-    private func sortLines(pattern: SortPattern, options: SortOptions) {
-        
-        // process whole document if no text selected
-        let range = self.selectedRange.isEmpty ? self.string.nsRange : self.selectedRange
-        
-        let string = self.string as NSString
-        let lineRange = string.lineContentsRange(for: range)
-        
-        guard !lineRange.isEmpty else { return }
-        
-        let newString = pattern.sort(string.substring(with: lineRange), options: options)
-        
-        self.replace(with: newString, range: lineRange, selectedRange: lineRange,
-                     actionName: "Sort Lines".localized)
     }
     
 }

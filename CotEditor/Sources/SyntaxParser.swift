@@ -53,8 +53,6 @@ final class SyntaxParser {
     
     var style: SyntaxStyle
     
-    @Published private(set) var outlineItems: [OutlineItem]?
-    
     
     // MARK: Private Properties
     
@@ -104,41 +102,6 @@ final class SyntaxParser {
         self.highlightCache = nil
         self.outlineParseOperationQueue.cancelAllOperations()
         self.syntaxHighlightParseOperationQueue.cancelAllOperations()
-    }
-    
-}
-
-
-
-// MARK: - Outline
-
-extension SyntaxParser {
-    
-    /// Parse outline.
-    func invalidateOutline() {
-        
-        guard
-            self.canParse,
-            !self.style.outlineExtractors.isEmpty,
-            !self.textStorage.range.isEmpty
-        else {
-            self.outlineItems = []
-            return
-        }
-        
-        self.outlineItems = nil
-        
-        let operation = OutlineParseOperation(extractors: self.style.outlineExtractors,
-                                              string: self.textStorage.string.immutable,
-                                              range: self.textStorage.range)
-        operation.completionBlock = { [weak self, unowned operation] in
-            self?.outlineItems = !operation.isCancelled ? operation.results : []
-        }
-        
-        // -> Regarding the outline extraction, just cancel previous operations before parsing the latest string,
-        //    since user cannot cancel it manually.
-        self.outlineParseOperationQueue.cancelAllOperations()
-        self.outlineParseOperationQueue.addOperation(operation)
     }
     
 }

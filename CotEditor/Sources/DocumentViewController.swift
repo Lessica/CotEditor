@@ -45,7 +45,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
     @Published private var sheetAvailability = false
     private var sheetAvailabilityObserver: AnyCancellable?
     
-    private lazy var outlineParseTask = Debouncer(delay: .seconds(0.4)) { [weak self] in self?.syntaxParser?.invalidateOutline() }
     private weak var syntaxHighlightProgress: Progress?
     
     @IBOutlet private weak var splitViewItem: NSSplitViewItem?
@@ -224,7 +223,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
             self.setup(editorViewController: editorViewController, baseViewController: nil)
             
             // start parcing syntax for highlighting and outline menu
-            self.outlineParseTask.perform()
             self.invalidateSyntaxHighlight()
             
             // detect indent style
@@ -248,14 +246,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
             self.documentStyleObserver = document.didChangeSyntaxStyle
                 .receive(on: RunLoop.main)
                 .sink { [weak self] _ in self?.didChangeSyntaxStyle() }
-            
-            // observe syntaxParser for outline update
-            self.outlineObserver = document.syntaxParser.$outlineItems
-                .debounce(for: 0.1, scheduler: RunLoop.main)
-                .removeDuplicates()
-                .sink { [weak self] (outlineItems) in
-                    self?.editorViewControllers.forEach { $0.outlineItems = outlineItems }
-                }
         }
     }
     
@@ -306,46 +296,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
                     ? "Hide Status Bar".localized
                     : "Show Status Bar".localized
             
-            case #selector(togglePageGuide):
-                (item as? NSMenuItem)?.title = self.showsPageGuide
-                    ? "Hide Page Guide".localized
-                    : "Show Page Guide".localized
-                (item as? StatableToolbarItem)?.state = self.showsPageGuide ? .on : .off
-            
-            case #selector(toggleIndentGuides):
-                (item as? NSMenuItem)?.title = self.showsIndentGuides
-                    ? "Hide Indent Guides".localized
-                    : "Show Indent Guides".localized
-                (item as? NSToolbarItem)?.toolTip = self.showsIndentGuides
-                    ? "Hide indent guide lines".localized
-                    : "Show indent guide lines".localized
-                (item as? StatableToolbarItem)?.state = self.showsIndentGuides ? .on : .off
-            
-            case #selector(toggleLineWrap):
-                (item as? NSMenuItem)?.title = self.wrapsLines
-                    ? "Unwrap Lines".localized
-                    : "Wrap Lines".localized
-                (item as? NSToolbarItem)?.toolTip = self.wrapsLines
-                    ? "Unwrap lines".localized
-                    : "Wrap lines".localized
-                (item as? StatableToolbarItem)?.state = self.wrapsLines ? .on : .off
-            
-            case #selector(toggleInvisibleChars):
-                (item as? NSMenuItem)?.title = self.showsInvisibles
-                    ? "Hide Invisibles".localized
-                    : "Show Invisibles".localized
-                (item as? StatableToolbarItem)?.state = self.showsInvisibles ? .on : .off
-                
-                // disable if item cannot be enabled
-                let canActivateShowInvisibles = !UserDefaults.standard.showsInvisible.isEmpty
-                item.toolTip = canActivateShowInvisibles ? nil : "To show invisible characters, set them in Preferences".localized
-                if canActivateShowInvisibles {
-                    (item as? NSToolbarItem)?.toolTip = self.showsInvisibles
-                        ? "Hide invisible characters".localized
-                        : "Show invisible characters".localized
-                }
-                return canActivateShowInvisibles
-            
             case #selector(toggleAntialias):
                 (item as? StatableItem)?.state = (self.focusedTextView?.usesAntialias ?? false) ? .on : .off
             
@@ -384,12 +334,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
             
             case #selector(changeOrientation):
                 (item as? NSToolbarItemGroup)?.selectedIndex = self.verticalLayoutOrientation ? 1 : 0
-                
-            case #selector(showOpacitySlider):
-                return self.view.window?.styleMask.contains(.fullScreen) == false
-            
-            case #selector(closeSplitTextView):
-                return (self.splitViewController?.splitViewItems.count ?? 0) > 1
             
             default: break
         }
@@ -410,8 +354,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
             else { return }
         
         self.document?.analyzer.invalidate()
-        self.document?.incompatibleCharacterScanner.invalidate()
-        self.outlineParseTask.schedule()
         
         // -> Perform in the next run loop to give layoutManagers time to update their values.
         DispatchQueue.main.async { [weak self] in
@@ -442,7 +384,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
             viewController.apply(style: syntaxParser.style)
         }
         
-        self.outlineParseTask.perform()
         self.invalidateSyntaxHighlight()
     }
     
@@ -805,88 +746,6 @@ final class DocumentViewController: NSSplitViewController, ThemeHolder, NSTextSt
         
         assertionFailure("This is a dummy action designed to be used just for the segmentation selection validation.")
     }
-    
-    
-    /// show editor opacity slider as popover
-    @IBAction func showOpacitySlider(_ sender: Any?) {
-        
-        guard let viewController = self.storyboard?.instantiateController(withIdentifier: "Opacity Slider") as? NSViewController else { return assertionFailure() }
-        
-        viewController.representedObject = self.view.window
-        
-        self.present(viewController, asPopoverRelativeTo: .zero, of: self.view,
-                     preferredEdge: .maxY, behavior: .transient)
-    }
-    
-    
-    /// split editor view
-    @IBAction func openSplitTextView(_ sender: Any?) {
-        
-        guard
-            let splitViewController = self.splitViewController,
-            let currentEditorViewController = self.baseEditorViewController(for: sender)
-            else { return assertionFailure() }
-        
-        guard splitViewController.splitViewItems.count < maximumNumberOfSplitEditors else { return NSSound.beep() }
-        
-        // end current editing
-        NSTextInputContext.current?.discardMarkedText()
-        
-        let newEditorViewController = EditorViewController.instantiate(storyboard: "EditorView")
-        splitViewController.addChild(newEditorViewController, relativeTo: currentEditorViewController)
-        self.setup(editorViewController: newEditorViewController, baseViewController: currentEditorViewController)
-        
-        newEditorViewController.outlineItems = self.syntaxParser?.outlineItems ?? []
-        self.invalidateSyntaxHighlight()
-        
-        // adjust visible areas
-        if let selectedRange = currentEditorViewController.textView?.selectedRange {
-            newEditorViewController.textView?.selectedRange = selectedRange
-            currentEditorViewController.textView?.scrollRangeToVisible(selectedRange)
-            newEditorViewController.textView?.scrollRangeToVisible(selectedRange)
-        }
-        
-        // observe cursor
-        NotificationCenter.default.addObserver(self, selector: #selector(textViewDidLiveChangeSelection),
-                                               name: EditorTextView.didLiveChangeSelectionNotification,
-                                               object: newEditorViewController.textView)
-        
-        // move focus to the new editor
-        self.view.window?.makeFirstResponder(newEditorViewController.textView)
-    }
-    
-    
-    /// close one of split views
-    @IBAction func closeSplitTextView(_ sender: Any?) {
-        
-        assert(self.splitViewController!.splitViewItems.count > 1)
-        
-        guard
-            let splitViewController = self.splitViewController,
-            let currentEditorViewController = self.baseEditorViewController(for: sender),
-            let splitViewItem = splitViewController.splitViewItem(for: currentEditorViewController)
-            else { return }
-        
-        if let textView = currentEditorViewController.textView {
-            NotificationCenter.default.removeObserver(self, name: NSTextView.didChangeSelectionNotification, object: textView)
-        }
-        
-        // end current editing
-        NSTextInputContext.current?.discardMarkedText()
-        
-        // move focus to the next text view if the view to close has a focus
-        if splitViewController.focusedChild == currentEditorViewController {
-            let children = self.editorViewControllers
-            let deleteIndex = children.firstIndex(of: currentEditorViewController) ?? 0
-            let newFocusEditorViewController = children[safe: deleteIndex - 1] ?? children.last!
-            
-            self.view.window?.makeFirstResponder(newFocusEditorViewController.textView)
-        }
-        
-        // close
-        splitViewController.removeSplitViewItem(splitViewItem)
-    }
-    
     
     
     // MARK: Private Methods

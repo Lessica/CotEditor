@@ -92,32 +92,6 @@ final class EditorTextViewController: NSViewController, NSTextViewDelegate {
     }
     
     
-    /// add script menu to context menu
-    func textView(_ view: NSTextView, menu: NSMenu, for event: NSEvent, at charIndex: Int) -> NSMenu? {
-        
-        // append Script menu
-        if let scriptMenu = ScriptManager.shared.contexualMenu {
-            let item = NSMenuItem(title: "", action: nil, keyEquivalent: "")
-            item.image = NSImage(symbolNamed: "applescript.fill", accessibilityDescription: "Scripts".localized)
-            item.toolTip = "Scripts".localized
-            item.submenu = scriptMenu
-            menu.addItem(item)
-        }
-        
-        // add "Inspect Character" menu item if single character is selected
-        if let textView = self.textView,
-           (textView.string as NSString).substring(with: textView.selectedRange).compareCount(with: 1) == .equal
-        {
-            menu.insertItem(withTitle: "Inspect Character".localized,
-                            action: #selector(showSelectionInfo),
-                            keyEquivalent: "",
-                            at: 1)
-        }
-        
-        return menu
-    }
-    
-    
     
     // MARK: Action Messages
     
@@ -145,48 +119,6 @@ final class EditorTextViewController: NSViewController, NSTextViewDelegate {
     }
     
     
-    /// show Unicode input view
-    @IBAction func showUnicodeInputPanel(_ sender: Any?) {
-        
-        guard let textView = self.textView else { return assertionFailure() }
-        
-        let inputViewController = UnicodeInputViewController.instantiate(storyboard: "UnicodeInputView")
-        inputViewController.completionHandler = { [weak textView] (character) in
-            textView?.insertText(String(character), replacementRange: .notFound)
-        }
-        
-        let positioningRect = textView.boundingRect(for: textView.selectedRange)?.insetBy(dx: -1, dy: -1) ?? .zero
-        let edge: NSRectEdge = (textView.layoutOrientation == .vertical) ? .maxX : .minY
-        
-        textView.scrollRangeToVisible(textView.selectedRange)
-        self.present(inputViewController, asPopoverRelativeTo: positioningRect, of: textView, preferredEdge: edge, behavior: .transient)
-    }
-    
-    
-    /// display character information by popover
-    @IBAction func showSelectionInfo(_ sender: Any?) {
-        
-        guard let textView = self.textView else { return assertionFailure() }
-        
-        var selectedString = (textView.string as NSString).substring(with: textView.selectedRange)
-        
-        // apply document's line ending
-        let documentLineEnding = textView.document?.lineEnding ?? .lf
-        if documentLineEnding != .lf, selectedString.detectedLineEnding == .lf {
-            selectedString = selectedString.replacingLineEndings(with: documentLineEnding)
-        }
-        
-        guard let characterInfo = try? CharacterInfo(string: selectedString) else { return }
-        
-        let popoverController = CharacterPopoverController.instantiate(for: characterInfo)
-        let positioningRect = textView.boundingRect(for: textView.selectedRange)?.insetBy(dx: -4, dy: -4) ?? .zero
-        
-        textView.scrollRangeToVisible(textView.selectedRange)
-        textView.showFindIndicator(for: textView.selectedRange)
-        self.present(popoverController, asPopoverRelativeTo: positioningRect, of: textView, preferredEdge: .minY, behavior: .semitransient)
-    }
-    
-    
     
     // MARK: Public Methods
     
@@ -205,11 +137,6 @@ extension EditorTextViewController: NSUserInterfaceValidations {
     func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
         
         switch item.action {
-            case #selector(showSelectionInfo):
-                guard let textView = self.textView else { return false }
-                return !textView.hasMultipleInsertions &&
-                    (textView.string as NSString).substring(with: textView.selectedRange).compareCount(with: 1) == .equal
-                
             case nil:
                 return false
                 

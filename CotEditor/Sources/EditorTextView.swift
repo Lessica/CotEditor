@@ -443,23 +443,6 @@ final class EditorTextView: NSTextView, Themable, CurrentLineHighlighting, URLDe
     }
     
     
-    /// key is pressed
-    override func keyDown(with event: NSEvent) {
-        
-        // perform snippet insertion if not in the middle of Japanese input
-        if !self.hasMarkedText(),
-            let snippet = SnippetKeyBindingManager.shared.snippet(keyEquivalent: event.charactersIgnoringModifiers,
-                                                                  modifierMask: event.modifierFlags)
-        {
-            self.insert(snippet: snippet)
-            self.centerSelectionInVisibleArea(self)
-            return
-        }
-        
-        super.keyDown(with: event)
-    }
-    
-    
     /// Esc key is pressed
     override func cancelOperation(_ sender: Any?) {
         

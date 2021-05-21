@@ -7,94 +7,16 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
-        <scene sceneID="Yfj-JT-7D8">
-            <objects>
-                <viewController storyboardIdentifier="Opacity Slider" id="ZLM-Nl-Z29" sceneMemberID="viewController">
-                    <view key="view" id="bOA-H3-R5s">
-                        <rect key="frame" x="0.0" y="0.0" width="168" height="58"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                        <subviews>
-                            <slider verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ZFD-Ne-lGK">
-                                <rect key="frame" x="32" y="4" width="104" height="28"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="100" id="IyE-hB-aRv"/>
-                                </constraints>
-                                <sliderCell key="cell" continuous="YES" state="on" alignment="left" minValue="0.20000000000000001" maxValue="1" doubleValue="1" tickMarkPosition="below" sliderType="linear" id="nH9-7k-ekd"/>
-                                <connections>
-                                    <binding destination="ZLM-Nl-Z29" name="value" keyPath="representedObject.backgroundAlpha" id="6ud-qq-oFU"/>
-                                </connections>
-                            </slider>
-                            <customView toolTip="Opaque" translatesAutoresizingMaskIntoConstraints="NO" id="8NN-KX-RmA" customClass="OpacitySampleView" customModule="CotEditor" customModuleProvider="target">
-                                <rect key="frame" x="142" y="12" width="16" height="16"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="16" id="fKr-dw-ydI"/>
-                                    <constraint firstAttribute="width" secondItem="8NN-KX-RmA" secondAttribute="height" multiplier="1:1" id="z4I-AJ-XUY"/>
-                                </constraints>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="opacity">
-                                        <real key="value" value="1"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
-                            </customView>
-                            <customView toolTip="Transparent" translatesAutoresizingMaskIntoConstraints="NO" id="EVo-Ee-gQ1" customClass="OpacitySampleView" customModule="CotEditor" customModuleProvider="target">
-                                <rect key="frame" x="10" y="12" width="16" height="16"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="16" id="Ua8-gn-INm"/>
-                                    <constraint firstAttribute="width" secondItem="EVo-Ee-gQ1" secondAttribute="height" multiplier="1:1" id="ffh-fp-NbT"/>
-                                </constraints>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="opacity">
-                                        <real key="value" value="0.20000000000000001"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
-                            </customView>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="w6y-xp-bly">
-                                <rect key="frame" x="8" y="36" width="101" height="16"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Editor’s Opacity" id="Are-7I-6OR">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                        </subviews>
-                        <constraints>
-                            <constraint firstItem="w6y-xp-bly" firstAttribute="leading" secondItem="bOA-H3-R5s" secondAttribute="leading" constant="10" id="8ZK-7g-gVK"/>
-                            <constraint firstAttribute="trailing" secondItem="8NN-KX-RmA" secondAttribute="trailing" constant="10" id="B8y-Wd-GeZ"/>
-                            <constraint firstItem="EVo-Ee-gQ1" firstAttribute="leading" secondItem="bOA-H3-R5s" secondAttribute="leading" constant="10" id="PNF-bq-CpF"/>
-                            <constraint firstItem="8NN-KX-RmA" firstAttribute="centerY" secondItem="EVo-Ee-gQ1" secondAttribute="centerY" id="Qk8-Dg-YoV"/>
-                            <constraint firstItem="EVo-Ee-gQ1" firstAttribute="top" secondItem="w6y-xp-bly" secondAttribute="bottom" constant="8" symbolic="YES" id="Tdv-Pe-xeS"/>
-                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="w6y-xp-bly" secondAttribute="trailing" constant="20" symbolic="YES" id="ZOb-kt-9qP"/>
-                            <constraint firstAttribute="bottom" secondItem="ZFD-Ne-lGK" secondAttribute="bottom" constant="10" id="b4K-7o-CYA"/>
-                            <constraint firstItem="w6y-xp-bly" firstAttribute="top" secondItem="bOA-H3-R5s" secondAttribute="top" constant="6" id="bha-wT-AWy"/>
-                            <constraint firstItem="8NN-KX-RmA" firstAttribute="leading" secondItem="ZFD-Ne-lGK" secondAttribute="trailing" constant="8" symbolic="YES" id="frb-pU-Ioy"/>
-                            <constraint firstItem="ZFD-Ne-lGK" firstAttribute="leading" secondItem="EVo-Ee-gQ1" secondAttribute="trailing" constant="8" symbolic="YES" id="g88-0H-jxA"/>
-                            <constraint firstItem="ZFD-Ne-lGK" firstAttribute="centerY" secondItem="EVo-Ee-gQ1" secondAttribute="centerY" id="v3v-iY-csa"/>
-                        </constraints>
-                    </view>
-                </viewController>
-                <customObject id="5Ob-vN-y5O" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="44" y="-190"/>
-        </scene>
         <!--Window Controller-->
         <scene sceneID="sAX-Gn-44h">
             <objects>
                 <windowController id="0UB-Lz-R6c" customClass="DocumentWindowController" customModule="CotEditor" customModuleProvider="target" sceneMemberID="viewController">
-                    <window key="window" title="Untitled" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="documentWindow" frameAutosaveName="" toolbarStyle="unified" id="gE4-1J-3li" userLabel="Window" customClass="DocumentWindow" customModule="CotEditor" customModuleProvider="target">
+                    <window key="window" title="Untitled" separatorStyle="line" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="documentWindow" frameAutosaveName="" toolbarStyle="unified" id="gE4-1J-3li" userLabel="Window" customClass="DocumentWindow" customModule="CotEditor" customModuleProvider="target">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <rect key="contentRect" x="10" y="280" width="600" height="660"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
                         <value key="minSize" type="size" width="480" height="480"/>
-                        <toolbar key="toolbar" implicitIdentifier="7E7590E9-43BC-40F7-B967-07FA2780E47B" displayMode="iconOnly" sizeMode="regular" id="sSX-oQ-RNS" customClass="MonosizeToolbar" customModule="CotEditor" customModuleProvider="target">
-                            <allowedToolbarItems/>
-                            <defaultToolbarItems/>
-                            <connections>
-                                <outlet property="delegate" destination="0UB-Lz-R6c" id="yOb-od-ptM"/>
-                                <outlet property="window" destination="gE4-1J-3li" id="4uv-vW-Vdy"/>
-                            </connections>
-                        </toolbar>
                         <connections>
                             <outlet property="delegate" destination="0UB-Lz-R6c" id="COX-Xt-aCO"/>
                         </connections>
@@ -113,7 +35,6 @@
                 <splitViewController showSeguePresentationStyle="single" id="O3C-zL-JF9" customClass="WindowContentViewController" customModule="CotEditor" customModuleProvider="target" sceneMemberID="viewController">
                     <splitViewItems>
                         <splitViewItem id="NAv-oU-Mey"/>
-                        <splitViewItem canCollapse="YES" collapsed="YES" holdingPriority="260" id="faM-S9-Ldc"/>
                     </splitViewItems>
                     <splitView key="splitView" misplaced="YES" autosaveName="windowContentSplitView" dividerStyle="thin" vertical="YES" id="Xj1-1i-hd5">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="660"/>
@@ -129,69 +50,12 @@
                     </splitView>
                     <connections>
                         <outlet property="documentViewItem" destination="NAv-oU-Mey" id="lPe-qQ-5LB"/>
-                        <outlet property="sidebarViewItem" destination="faM-S9-Ldc" id="txW-VA-3vb"/>
                         <segue destination="2gA-dj-5gh" kind="relationship" relationship="splitItems" id="49u-wK-kqV"/>
-                        <segue destination="7te-2x-zAq" kind="relationship" relationship="splitItems" id="sB5-Yd-23U"/>
                     </connections>
                 </splitViewController>
                 <customObject id="DVR-hr-tha" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="540" y="292"/>
-        </scene>
-        <!--Sidebar View Controller-->
-        <scene sceneID="Z70-6I-Rpr">
-            <objects>
-                <tabViewController showSeguePresentationStyle="single" tabStyle="unspecified" id="7te-2x-zAq" customClass="SidebarViewController" customModule="CotEditor" customModuleProvider="target" sceneMemberID="viewController">
-                    <tabViewItems>
-                        <tabViewItem label="Document Inspector" identifier="DocumentInspector" image="doc" catalog="system" id="Kfj-q6-61N"/>
-                        <tabViewItem label="Outline" identifier="Outline" image="list.bullet.indent" catalog="system" id="hyM-2j-hen"/>
-                        <tabViewItem label="Incompatible Characters" identifier="IncompatibleCharacters" image="exclamationmark.triangle" catalog="system" id="JZo-ok-Dks"/>
-                    </tabViewItems>
-                    <viewControllerTransitionOptions key="transitionOptions" allowUserInteraction="YES"/>
-                    <tabView key="tabView" misplaced="YES" type="noTabsNoBorder" id="wzn-c5-29x" customClass="InspectorTabView" customModule="CotEditor" customModuleProvider="target">
-                        <rect key="frame" x="252" y="0.0" width="200" height="660"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                        <font key="font" metaFont="system"/>
-                        <connections>
-                            <outlet property="delegate" destination="7te-2x-zAq" id="As3-Gf-aa6"/>
-                        </connections>
-                    </tabView>
-                    <connections>
-                        <outlet property="documentInspectorTabViewItem" destination="Kfj-q6-61N" id="WFA-8N-DmT"/>
-                        <outlet property="incompatibleCharactersTabViewItem" destination="JZo-ok-Dks" id="QRQ-Sy-61p"/>
-                        <outlet property="outlineTabViewItem" destination="hyM-2j-hen" id="EFV-Ay-pkJ"/>
-                        <segue destination="2Hh-Pq-vvo" kind="relationship" relationship="tabItems" id="dgq-BX-Slv"/>
-                        <segue destination="US1-1U-VH8" kind="relationship" relationship="tabItems" id="4Zo-YO-63m"/>
-                        <segue destination="ry4-rh-ZBT" kind="relationship" relationship="tabItems" id="XUT-Cm-0nR"/>
-                    </connections>
-                </tabViewController>
-                <customObject id="u7b-LP-b38" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="740" y="1142"/>
-        </scene>
-        <!--Document Inspector View Controller-->
-        <scene sceneID="eSh-Om-8dn">
-            <objects>
-                <controllerPlaceholder storyboardName="DocumentInspectorView" id="2Hh-Pq-vvo" userLabel="Document Inspector View Controller" sceneMemberID="viewController"/>
-                <customObject id="Eo9-v0-LrD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1082" y="1067"/>
-        </scene>
-        <!--Incompatible Characters View Controller-->
-        <scene sceneID="Wud-vX-9dR">
-            <objects>
-                <controllerPlaceholder storyboardName="IncompatibleCharactersView" id="ry4-rh-ZBT" userLabel="Incompatible Characters View Controller" sceneMemberID="viewController"/>
-                <customObject id="fzj-JB-SfU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1095" y="1217"/>
-        </scene>
-        <!--Outline View Controller-->
-        <scene sceneID="0hV-Dj-Fqy">
-            <objects>
-                <controllerPlaceholder storyboardName="OutlineView" id="US1-1U-VH8" userLabel="Outline View Controller" sceneMemberID="viewController"/>
-                <customObject id="muC-U5-1Gw" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1043" y="1142"/>
         </scene>
         <!--Document View Controller-->
         <scene sceneID="og9-Gf-wXr">
@@ -270,7 +134,7 @@
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="52" id="Fo4-PE-eBJ"/>
                                     <constraint firstAttribute="height" constant="21" id="i5y-f9-wPx"/>
                                 </constraints>
-                                <popUpButtonCell key="cell" type="smallSquare" title="LF" bezelStyle="smallSquare" imagePosition="left" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" inset="2" autoenablesItems="NO" selectedItem="YT7-vd-3ih" id="uXq-8L-T6d">
+                                <popUpButtonCell key="cell" type="smallSquare" title="LF" bezelStyle="smallSquare" imagePosition="left" alignment="left" controlSize="small" lineBreakMode="truncatingTail" enabled="NO" state="on" inset="2" autoenablesItems="NO" selectedItem="YT7-vd-3ih" id="uXq-8L-T6d">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
                                     <menu key="menu" autoenablesItems="NO" id="2cU-Cq-rxZ">
@@ -302,7 +166,7 @@
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="128" id="gE6-7r-AUt"/>
                                 </constraints>
-                                <popUpButtonCell key="cell" type="smallSquare" title="Unicode (UTF-8)" bezelStyle="smallSquare" imagePosition="left" alignment="left" controlSize="small" lineBreakMode="truncatingTail" state="on" inset="2" autoenablesItems="NO" selectedItem="fc5-iy-HpH" id="2gs-WJ-6IP">
+                                <popUpButtonCell key="cell" type="smallSquare" title="Unicode (UTF-8)" bezelStyle="smallSquare" imagePosition="left" alignment="left" controlSize="small" lineBreakMode="truncatingTail" enabled="NO" state="on" inset="2" autoenablesItems="NO" selectedItem="fc5-iy-HpH" id="2gs-WJ-6IP">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="smallSystem"/>
                                     <menu key="menu" autoenablesItems="NO" id="E76-Et-IKc">
@@ -387,9 +251,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="doc" catalog="system" width="14" height="16"/>
-        <image name="exclamationmark.triangle" catalog="system" width="17" height="15"/>
-        <image name="list.bullet.indent" catalog="system" width="19" height="12"/>
         <namedColor name="DividerColor">
             <color white="0.85000002384185791" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </namedColor>

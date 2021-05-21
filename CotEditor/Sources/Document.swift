@@ -57,15 +57,11 @@ final class Document: NSDocument, AdditionalDocumentPreparing, EncodingHolder {
     
     private(set) lazy var selection = TextSelection(document: self)
     private(set) lazy var analyzer = DocumentAnalyzer(document: self)
-    private(set) lazy var incompatibleCharacterScanner = IncompatibleCharacterScanner(document: self)
     
     let didChangeSyntaxStyle = PassthroughSubject<String, Never>()
     
     
     // MARK: Private Properties
-    
-    private lazy var printPanelAccessoryController = PrintPanelAccessoryController.instantiate(storyboard: "PrintPanelAccessory")
-    private lazy var savePanelAccessoryController = NSViewController.instantiate(storyboard: "SaveDocumentAccessory")
     
     private var readingEncoding: String.Encoding  // encoding to read document file
     private var isExternalUpdateAlertShown = false
@@ -417,10 +413,6 @@ final class Document: NSDocument, AdditionalDocumentPreparing, EncodingHolder {
                     self.setSyntaxStyle(name: styleName)
                 }
             }
-            
-            if !saveOperation.isAutosaving {
-                ScriptManager.shared.dispatchEvent(documentSaved: self)
-            }
         }
     }
     
@@ -499,11 +491,6 @@ final class Document: NSDocument, AdditionalDocumentPreparing, EncodingHolder {
             }
         }
         
-        // set accessory view
-        self.savePanelAccessoryController = self.savePanelAccessoryController.storyboard!.instantiateInitialController() as! NSViewController
-        self.savePanelAccessoryController.representedObject = self
-        savePanel.accessoryView = self.savePanelAccessoryController.view
-        
         return super.prepareSavePanel(savePanel)
     }
     
@@ -557,76 +544,6 @@ final class Document: NSDocument, AdditionalDocumentPreparing, EncodingHolder {
         self.syntaxParser.invalidateCurrentParse()
         
         super.close()
-    }
-    
-    
-    /// setup print setting including print panel
-    override func printOperation(withSettings printSettings: [NSPrintInfo.AttributeKey: Any]) throws -> NSPrintOperation {
-        
-        let viewController = self.viewController!
-        
-        // create printView
-        let printView = PrintTextView()
-        printView.setLayoutOrientation(viewController.verticalLayoutOrientation ? .vertical : .horizontal)
-        printView.documentName = self.displayName
-        printView.filePath = self.fileURL?.path
-        printView.syntaxParser.style = self.syntaxParser.style
-        printView.documentShowsInvisibles = viewController.showsInvisibles
-        printView.documentShowsLineNumber = viewController.showsLineNumber
-        printView.baseWritingDirection = viewController.writingDirection
-        printView.ligature = UserDefaults.standard[.ligature] ? .standard : .none
-        
-        // set font for printing
-        printView.font = UserDefaults.standard[.setPrintFont]
-            ? NSFont(name: UserDefaults.standard[.printFontName], size: UserDefaults.standard[.printFontSize])
-            : viewController.font
-        
-        // [caution] need to set string after setting other properties
-        printView.string = self.textStorage.string
-        
-        // detect URLs manually (2019-05 macOS 10.14).
-        // -> TextView anyway links all URLs in the printed PDF even the auto URL detection is disabled,
-        //    but then, multiline-URLs over a page break would be broken. (cf. #958)
-        printView.detectLink()
-        
-        // create print operation
-        let printInfo = self.printInfo
-        printInfo.dictionary().addEntries(from: printSettings)
-        let printOperation = NSPrintOperation(view: printView, printInfo: printInfo)
-        printOperation.showsProgressPanel = true
-        // -> This flag looks fancy but needs to disable
-        //    since NSTextView seems to cannot print in a background thraed (macOS -10.15).
-        printOperation.canSpawnSeparateThread = false
-        
-        // setup print panel
-        printOperation.printPanel.addAccessoryController(self.printPanelAccessoryController)
-        printOperation.printPanel.options.formUnion([.showsPaperSize, .showsOrientation, .showsScaling])
-        
-        return printOperation
-    }
-    
-    
-    /// printing information associated with the document
-    override var printInfo: NSPrintInfo {
-        
-        get {
-            let printInfo = super.printInfo
-            
-            printInfo.horizontalPagination = .fit
-            printInfo.isHorizontallyCentered = false
-            printInfo.isVerticallyCentered = false
-            printInfo.leftMargin = PrintTextView.horizontalPrintMargin
-            printInfo.rightMargin = PrintTextView.horizontalPrintMargin
-            printInfo.topMargin = PrintTextView.verticalPrintMargin
-            printInfo.bottomMargin = PrintTextView.verticalPrintMargin
-            printInfo.dictionary()[NSPrintInfo.AttributeKey.headerAndFooter] = true
-            
-            return printInfo
-        }
-        
-        set {
-            super.printInfo = newValue
-        }
     }
     
     
@@ -731,8 +648,6 @@ final class Document: NSDocument, AdditionalDocumentPreparing, EncodingHolder {
         
         // [caution] This method may be called from a background thread due to concurrent-opening.
         // -> This method won't be invoked on Resume. (2015-01-26)
-        
-        ScriptManager.shared.dispatchEvent(documentOpened: self)
     }
     
     
@@ -808,9 +723,6 @@ final class Document: NSDocument, AdditionalDocumentPreparing, EncodingHolder {
         
         // update encoding
         self.fileEncoding = fileEncoding
-        
-        // check encoding compatibility
-        self.incompatibleCharacterScanner.scan()
     }
     
     
@@ -1008,9 +920,6 @@ final class Document: NSDocument, AdditionalDocumentPreparing, EncodingHolder {
         
         // update status bar and document inspector
         self.analyzer.invalidate()
-        
-        // update incompatible characters if pane is visible
-        self.incompatibleCharacterScanner.invalidate()
         
         guard let viewController = self.viewController else { return }
         
@@ -1218,7 +1127,6 @@ private struct EncodingError: LocalizedError, RecoverableError {
             case .lossySaving:
                 switch recoveryOptionIndex {
                     case 0:  // == Show Incompatible Characters
-                        self.showIncompatibleCharacters()
                         return false
                     case 1:  // == Save
                         return true
@@ -1232,22 +1140,12 @@ private struct EncodingError: LocalizedError, RecoverableError {
                 switch recoveryOptionIndex {
                     case 0:  // == Change Encoding
                         try? self.attempter.changeEncoding(to: self.fileEncoding, lossy: true)
-                        self.showIncompatibleCharacters()
                         return true
                     case 1:  // == Cancel
                         return false
                     default:
                         preconditionFailure()
                 }
-        }
-    }
-    
-    
-    private func showIncompatibleCharacters() {
-        
-        let windowContentController = self.attempter.windowControllers.first?.contentViewController as? WindowContentViewController
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            windowContentController?.showSidebarPane(index: .incompatibleCharacters)
         }
     }
     
